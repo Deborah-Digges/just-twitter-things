@@ -27,7 +27,7 @@ def strip(tweet):
             index_pairs.append(entity['indices'])
     index_pairs.sort()
 
-    text = tweet['text']
+    text = tweet['text'].strip()
     stripped_tweet = ""
     start = 0
     end = None
@@ -39,14 +39,16 @@ def strip(tweet):
 
     if end:
         stripped_tweet += text[end:]
-    return stripped_tweet
+    tweet['text'] = stripped_tweet
+    return tweet
 
 # construct the score of each tweet
 def sentiment_score(tweet, sent_map):
     score = 0
-    for word in tweet.split():
+    for word in tweet['text'].split():
         score += sent_map.get(word, 0)
-    return score
+    tweet['sent_score'] = score
+    return tweet
 
 
 def main():
@@ -56,10 +58,10 @@ def main():
     tweets = [json.loads(line) for line in tweet_file]
     sent_map = build_sent_map(sent_file)
 
-    tweets = map(lambda x: strip(x), tweets)
+    tweets = map(lambda x: sentiment_score(x, sent_map), map(strip, tweets))
 
     for tweet in tweets:
-        print sentiment_score(tweet, sent_map)
+        print tweet['text'], tweet['sent_score']
 
 if __name__ == '__main__':
     main()
