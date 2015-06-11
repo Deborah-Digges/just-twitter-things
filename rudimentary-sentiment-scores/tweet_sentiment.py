@@ -24,9 +24,7 @@ def strip(tweet):
     index_pairs = []    
     for entity_type in tweet['entities']:
         for entity in tweet['entities'][entity_type]:
-            start = entity['indices'][0]
-            end = entity['indices'][1]
-            index_pairs.append([start,end])
+            index_pairs.append(entity['indices'])
     index_pairs.sort()
 
     text = tweet['text']
@@ -61,7 +59,7 @@ def main():
     tweets = map(lambda x: strip(x), tweets)
 
     for tweet in tweets:
-        print tweet, sentiment_score(tweet, sent_map)
+        print sentiment_score(tweet, sent_map)
 
 if __name__ == '__main__':
     main()
