@@ -1,5 +1,6 @@
-import sys
 import json
+import string
+import sys
 
 #argv[1] - file mapping words to scores
 #argv[2] - tweet file(obtained using streaming api)
@@ -21,6 +22,7 @@ def build_sent_map(sent_file):
 
 # remove hashtags, urls, user_mentions, trends, symbols
 def strip(tweet):
+    remove_punctuation(tweet)
     index_pairs = []    
     for entity_type in tweet['entities']:
         for entity in tweet['entities'][entity_type]:
@@ -42,6 +44,12 @@ def strip(tweet):
     tweet['text'] = stripped_tweet
     return tweet
 
+# Remove punctuation
+def remove_punctuation(tweet):
+    text = tweet['text']
+    text = text.encode('ascii', 'ignore')
+    text = text.translate(None, string.punctuation)
+
 # construct the score of each tweet
 def sentiment_score(tweet, sent_map):
     score = 0
@@ -49,6 +57,12 @@ def sentiment_score(tweet, sent_map):
         score += sent_map.get(word, 0)
     tweet['sent_score'] = score
     return tweet
+
+# Find the sentiment of words that are not in the sentiment map
+def find_word_sentiment(scored_tweets):
+    for tweet in scored_tweets:
+        for word in tweet['text'].split():
+            print word
 
 
 def main():
@@ -59,9 +73,10 @@ def main():
     sent_map = build_sent_map(sent_file)
 
     tweets = map(lambda x: sentiment_score(x, sent_map), map(strip, tweets))
-
+    scored_tweets = filter(lambda x: x['sent_score'] != 0, tweets)
+    find_word_sentiment(scored_tweets)  
     for tweet in tweets:
-        print tweet['text'], tweet['sent_score']
+       print tweet['text'], tweet['sent_score']
 
 if __name__ == '__main__':
     main()
